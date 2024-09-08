@@ -31,13 +31,13 @@ app.post('/hooks/catch/:userId/:zapId', (req, res) => __awaiter(void 0, void 0, 
     const zapId = req.params.zapId;
     const body = req.body;
     client.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-        const run = yield client.zapRun.create({
+        const run = yield tx.zapRun.create({
             data: {
                 zapId: zapId,
                 metadata: body
             }
         });
-        yield client.zapRunOutBox.create({
+        yield tx.zapRunOutBox.create({
             data: {
                 zapRunId: run.id
             }
