@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User{
+  id        Int  @id @default(autoincrement())
+  name      String
+  email     String
+  password  String
+}
+
+model Zap{
+  id         String @id @default(uuid())
+  triggerId  String
+  trigger Trigger?
+  actions Action[]
+  zapRuns ZapRun[]
+}
+
+model Trigger{
+  id         String @id @default(uuid())
+  zapId      String @unique
+  availableTriggerId  String
+  type AvailableTrigger @ relation(fields:[availableTriggerId] , references:[id])
+  zap  Zap              @ relation(fields:[zapId]     , references:[id])
+}
+
+model Action{
+  id        String @id @default(uuid())
+  zapId     String 
+  AvailableActionId  String
+  zap Zap @relation(fields:[zapId], references:[id])
+  type AvailableAction @relation(fields:[AvailableActionId] , references:[id])
+  sortingOrder Int      @default(0)
+}
+
+model AvailableTrigger{
+  id    String @id @default(uuid())
+  name  String
+  triggers Trigger[]
+}
+
+model AvailableAction{
+  id     String @id @default(uuid())
+  name   String
+  actions Action[]
+}
+
+model ZapRun{
+  id String @id @default(uuid())
+  zapId  String
+  metadata Json
+  zap Zap @relation(fields:[zapId] ,references:[id])
+  zapRunOutBox ZapRunOutBox?
+}
+
+model ZapRunOutBox{
+  id String @id @default(uuid())
+  zapRunId String @unique
+  zapRun ZapRun @relation(fields: [zapRunId] ,references: [id])
+}
+
+
+// User to Zap: One-to-many relationship. A User can have multiple Zaps.
+// Zap to User: Many-to-one relationship. Each Zap belongs to one User.
+// Zap to Trigger: One-to-one relationship. Each Zap has one Trigger.
+// Zap to Action: One-to-many relationship. A Zap can have multiple Actions.
+// Zap to ZapRun: One-to-many relationship. A Zap can have multiple ZapRuns.
+// Trigger to AvailableTriggers: Many-to-one relationship. Each Trigger is associated with one AvailableTriggers type.
+// Action to AvailableActions: Many-to-one relationship. Each Action is associated with one AvailableActions type.
+// ZapRun to ZapRunOutbox: One-to-one relationship. Each ZapRun can have one ZapRunOutbox.
