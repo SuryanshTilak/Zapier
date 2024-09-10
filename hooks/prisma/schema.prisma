@@ -13,64 +13,67 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User{
-  id        Int  @id @default(autoincrement())
-  name      String
-  email     String
-  password  String
+model User {
+  id       Int    @id @default(autoincrement())
+  name     String
+  email    String
+  password String
+  zaps     Zap[]
 }
 
-model Zap{
-  id         String @id @default(uuid())
-  triggerId  String
-  trigger Trigger?
-  actions Action[]
-  zapRuns ZapRun[]
+model Zap {
+  id        String   @id @default(uuid())
+  triggerId String
+  userId    Int
+  trigger   Trigger?
+  actions   Action[]
+  zapRuns   ZapRun[]
+  user      User     @relation(fields: [userId], references: [id])
 }
 
-model Trigger{
-  id         String @id @default(uuid())
-  zapId      String @unique
-  availableTriggerId  String
-  type AvailableTrigger @ relation(fields:[availableTriggerId] , references:[id])
-  zap  Zap              @ relation(fields:[zapId]     , references:[id])
-}
-
-model Action{
-  id        String @id @default(uuid())
-  zapId     String 
-  AvailableActionId  String
-  zap Zap @relation(fields:[zapId], references:[id])
-  type AvailableAction @relation(fields:[AvailableActionId] , references:[id])
-  sortingOrder Int      @default(0)
-}
-
-model AvailableTrigger{
+model Trigger {
   id    String @id @default(uuid())
-  name  String
+  zapId String @unique
+
+  availableTriggerId String
+  type               AvailableTrigger @relation(fields: [availableTriggerId], references: [id])
+  zap                Zap              @relation(fields: [zapId], references: [id])
+}
+
+model Action {
+  id                String          @id @default(uuid())
+  zapId             String
+  AvailableActionId String
+  zap               Zap             @relation(fields: [zapId], references: [id])
+  type              AvailableAction @relation(fields: [AvailableActionId], references: [id])
+  sortingOrder      Int             @default(0)
+}
+
+model AvailableTrigger {
+  id       String    @id @default(uuid())
+  name     String
   triggers Trigger[]
 }
 
-model AvailableAction{
-  id     String @id @default(uuid())
-  name   String
+model AvailableAction {
+  id      String   @id @default(uuid())
+  name    String
   actions Action[]
 }
 
-model ZapRun{
-  id String @id @default(uuid())
-  zapId  String
-  metadata Json
-  zap Zap @relation(fields:[zapId] ,references:[id])
+model ZapRun {
+  id           String        @id @default(uuid())
+  zapId        String
+  metadata     Json
+  zap          Zap           @relation(fields: [zapId], references: [id])
   zapRunOutBox ZapRunOutBox?
 }
 
-model ZapRunOutBox{
-  id String @id @default(uuid())
+model ZapRunOutBox {
+  id       String @id @default(uuid())
   zapRunId String @unique
-  zapRun ZapRun @relation(fields: [zapRunId] ,references: [id])
+  zapRun   ZapRun @relation(fields: [zapRunId], references: [id])
 }
-
 
 // User to Zap: One-to-many relationship. A User can have multiple Zaps.
 // Zap to User: Many-to-one relationship. Each Zap belongs to one User.

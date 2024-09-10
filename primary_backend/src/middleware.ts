@@ -1,6 +1,21 @@
 import { Request, Response, NextFunction } from "express"
+import { JWT_PASSWORD } from "./types/config"
+import jwt from "jsonwebtoken"
 
 export const authMiddleware = (req : Request,res : Response ,next : NextFunction) =>{
-    
-next()
+    const token = req.headers.authorization  as unknown as string
+
+    try{
+        const payload=jwt.verify(token,JWT_PASSWORD)
+
+        //@ts-ignore
+        req.id=payload.id
+        next()
+    }
+    catch(e)
+    {
+        return res.status(403).json({
+            message : "You are not logged in"
+        })
+    }
 }
